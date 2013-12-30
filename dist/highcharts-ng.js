@@ -1,3 +1,5 @@
+var angular = require("angular");
+
 'use strict';
 angular.module('highcharts-ng', []).directive('highchart', function () {
   var indexOf = function (arr, find, i) {

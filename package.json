@@ -5,6 +5,8 @@
   "keywords": [
     "angular"
   ],
+  "main": "dist/highcharts-ng.js",
+  "browser": "dist/highcharts-ng.js",
   "homepage": "https://github.com/pablojim/highcharts-ng",
   "bugs": "https://github.com/pablojim/highcharts-ng/issues",
   "author": {
