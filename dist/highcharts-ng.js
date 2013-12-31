@@ -14,18 +14,6 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
         return i;
     return -1;
   };
-  function prependMethod(obj, method, func) {
-    var original = obj[method];
-    obj[method] = function () {
-      var args = Array.prototype.slice.call(arguments);
-      func.apply(this, args);
-      if (original) {
-        return original.apply(this, args);
-      } else {
-        return;
-      }
-    };
-  }
   function deepExtend(destination, source) {
     for (var property in source) {
       if (source[property] && source[property].constructor && source[property].constructor === Object) {
@@ -68,24 +56,6 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
     mergedOptions.chart.renderTo = element[0];
     axisNames.forEach(function (axisName) {
       if (config[axisName]) {
-        prependMethod(mergedOptions.chart.events, 'selection', function (e) {
-          var thisChart = this;
-          if (e[axisName]) {
-            scope.$apply(function () {
-              scope.config[axisName].currentMin = e[axisName][0].min;
-              scope.config[axisName].currentMax = e[axisName][0].max;
-            });
-          } else {
-            scope.$apply(function () {
-              scope.config[axisName].currentMin = thisChart[axisName][0].dataMin;
-              scope.config[axisName].currentMax = thisChart[axisName][0].dataMax;
-            });
-          }
-        });
-        prependMethod(mergedOptions.chart.events, 'addSeries', function (e) {
-          scope.config[axisName].currentMin = this[axisName][0].min || scope.config[axisName].currentMin;
-          scope.config[axisName].currentMax = this[axisName][0].max || scope.config[axisName].currentMax;
-        });
         mergedOptions[axisName] = angular.copy(config[axisName]);
       }
     });
