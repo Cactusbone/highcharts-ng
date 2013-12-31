@@ -130,7 +130,7 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
     }
     processSeries(chart, config.series);
     if (config.loading) {
-      chart.showLoading();
+      chart.showLoading(config.loading!==true?config.loading:null);
     }
     chart.redraw();
     return chart;
@@ -165,7 +165,7 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
       }, true);
       scope.$watch('config.loading', function (loading) {
         if (loading) {
-          chart.showLoading();
+          chart.showLoading(loading!==true?loading:null);
         } else {
           chart.hideLoading();
         }
