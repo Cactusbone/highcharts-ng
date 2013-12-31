@@ -178,6 +178,9 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
         chart = initialiseChart(scope, element, scope.config);
       }
       initChart();
+        scope.$on("resetColors",function(){
+            chart.counters.color = 0;
+        });
       scope.$watch('config.series', function (newSeries, oldSeries) {
         if (newSeries === oldSeries)
           return;
