@@ -149,7 +149,8 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
       }
       initChart();
         scope.$on("resetColors",function(){
-            chart.counters.color = 0;
+           if(chart && chart.counters)
+               chart.counters.color = 0;
         });
       scope.$watch('config.series', function (newSeries, oldSeries) {
         if (newSeries === oldSeries)
