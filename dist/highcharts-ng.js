@@ -164,6 +164,7 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
           return;
         processSeries(chart, newSeries);
         chart.redraw();
+        chart.reflow();
       }, true);
       scope.$watch('config.title', function (newTitle) {
         chart.setTitle(newTitle, true);
