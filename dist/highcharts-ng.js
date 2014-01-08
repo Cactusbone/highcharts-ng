@@ -1,5 +1,3 @@
-var angular = require("angular");
-
 'use strict';
 angular.module('highcharts-ng', []).directive('highchart', function () {
   var indexOf = function (arr, find, i) {
@@ -14,17 +12,23 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
         return i;
     return -1;
   };
+
   function deepExtend(destination, source) {
     for (var property in source) {
+      //noinspection JSUnfilteredForInLoop
       if (source[property] && source[property].constructor && source[property].constructor === Object) {
+        //noinspection JSUnfilteredForInLoop
         destination[property] = destination[property] || {};
+        //noinspection JSUnfilteredForInLoop
         deepExtend(destination[property], source[property]);
       } else {
+        //noinspection JSUnfilteredForInLoop
         destination[property] = source[property];
       }
     }
     return destination;
   }
+
   var seriesId = 0;
   var ensureIds = function (series) {
     angular.forEach(series, function (s) {
@@ -34,20 +38,20 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
     });
   };
   var axisNames = [
-      'xAxis',
-      'yAxis'
-    ];
+    'xAxis',
+    'yAxis'
+  ];
   var getMergedOptions = function (scope, element, config) {
     var mergedOptions = {};
     var defaultOptions = {
-        chart: { events: {} },
-        title: {},
-        subtitle: {},
-        series: [],
-        credits: {},
-        plotOptions: {},
-        navigator: { enabled: false }
-      };
+      chart: { events: {} },
+      title: {},
+      subtitle: {},
+      series: [],
+      credits: {},
+      plotOptions: {},
+      navigator: { enabled: false }
+    };
     if (config.options) {
       mergedOptions = deepExtend(defaultOptions, config.options);
     } else {
@@ -130,9 +134,10 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
     }
     processSeries(chart, config.series);
     if (config.loading) {
-      chart.showLoading(config.loading!==true?config.loading:null);
+      chart.showLoading(config.loading !== true ? config.loading : null);
     }
     chart.redraw();
+    chart.reflow();
     return chart;
   };
   return {
@@ -140,18 +145,20 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
     replace: true,
     template: '<div></div>',
     scope: { config: '=' },
-    link: function (scope, element, attrs) {
+    link: function (scope, element) {
       var chart = false;
+
       function initChart() {
         if (chart)
           chart.destroy();
         chart = initialiseChart(scope, element, scope.config);
       }
+
       initChart();
-        scope.$on("resetColors",function(){
-           if(chart && chart.counters)
-               chart.counters.color = 0;
-        });
+      scope.$on("resetColors", function () {
+        if (chart && chart.counters)
+          chart.counters.color = 0;
+      });
       scope.$watch('config.series', function (newSeries, oldSeries) {
         if (newSeries === oldSeries)
           return;
@@ -166,7 +173,7 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
       }, true);
       scope.$watch('config.loading', function (loading) {
         if (loading) {
-          chart.showLoading(loading!==true?loading:null);
+          chart.showLoading(loading !== true ? loading : null);
         } else {
           chart.hideLoading();
         }
@@ -177,9 +184,6 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
         } else if (chart.credits) {
           chart.credits.hide();
         }
-      });
-      scope.$watch('config.useHighStocks', function (useHighStocks) {
-        initChart();
       });
       axisNames.forEach(function (axisName) {
         scope.$watch('config.' + axisName, function (newAxes, oldAxes) {
@@ -192,7 +196,7 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
           }
         }, true);
       });
-      scope.$watch('config.options', function (newOptions, oldOptions, scope) {
+      scope.$watch('config.options', function (newOptions, oldOptions) {
         if (newOptions === oldOptions)
           return;
         initChart();
