@@ -163,6 +163,7 @@ angular.module('highcharts-ng', []).directive('highchart', function () {
         if (newSeries === oldSeries)
           return;
         processSeries(chart, newSeries);
+        chart.exportSVGElements && chart.exportSVGElements.length > 0 && chart.exportSVGElements[0].toFront();
         chart.redraw();
         chart.reflow();
       }, true);
