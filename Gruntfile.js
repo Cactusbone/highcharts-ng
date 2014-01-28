@@ -176,7 +176,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', [
     'clean:dist',
-    'less:dist',
+    'concat:dist',
     'ngmin:dist',
     'uglify:dist'
   ]);
@@ -184,7 +184,7 @@ module.exports = function(grunt) {
   grunt.registerTask('release', [
     'test',
     'bump-only',
-    'dist',
+    'build',
     'bump-commit'
   ]);
 

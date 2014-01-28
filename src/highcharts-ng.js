@@ -63,7 +63,7 @@ angular.module('highcharts-ng', [])
         mergedOptions = defaultOptions;
       }
       mergedOptions.chart.renderTo = element[0];
-      axisNames.forEach(function (axisName) {
+      angular.forEach(axisNames, function(axisName) {
         if (config[axisName]) {
           mergedOptions[axisName] = angular.copy(config[axisName]);
         }
@@ -117,7 +117,7 @@ angular.module('highcharts-ng', [])
                 chartSeries.setVisible(s.visible, false);
               }
               if (chartSeries.options.data !== s.data) {
-                chartSeries.setData(s.data, false);
+                chartSeries.setData(angular.copy(s.data), false);
               }
             }
           } else {
@@ -211,7 +211,7 @@ angular.module('highcharts-ng', [])
           initChart();
         });
 
-        axisNames.forEach(function (axisName) {
+        angular.forEach(axisNames, function(axisName) {
           scope.$watch('config.' + axisName, function (newAxes, oldAxes) {
             if (newAxes === oldAxes) return;
             if (newAxes) {
