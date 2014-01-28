@@ -3,159 +3,6 @@
 
 angular.module('highcharts-ng', [])
   .directive('highchart', function () {
-
-    //IE8 support
-    var indexOf = function (arr, find, i /*opt*/) {
-      if (i === undefined) i = 0;
-      if (i < 0) i += arr.length;
-      if (i < 0) i = 0;
-      for (var n = arr.length; i < n; i++)
-        if (i in arr && arr[i] === find)
-          return i;
-      return -1;
-    };
-
-    function deepExtend(destination, source) {
-      for (var property in source) {
-        //noinspection JSUnfilteredForInLoop
-        if (source[property] && source[property].constructor &&
-          source[property].constructor === Object) {
-          //noinspection JSUnfilteredForInLoop
-          destination[property] = destination[property] || {};
-          //noinspection JSUnfilteredForInLoop
-          deepExtend(destination[property], source[property]);
-        } else {
-          //noinspection JSUnfilteredForInLoop
-          destination[property] = source[property];
-        }
-      }
-      return destination;
-    }
-
-    var seriesId = 0;
-    var ensureIds = function (series) {
-      angular.forEach(series, function (s) {
-        if (!angular.isDefined(s.id)) {
-          s.id = 'series-' + seriesId++;
-        }
-      });
-    };
-    var axisNames = [ 'xAxis', 'yAxis' ];
-
-    var getMergedOptions = function (scope, element, config) {
-      var mergedOptions = {};
-
-      var defaultOptions = {
-        chart: {
-          events: {}
-        },
-        title: {},
-        subtitle: {},
-        series: [],
-        credits: {},
-        plotOptions: {},
-        navigator: {enabled: false}
-      };
-
-      if (config.options) {
-        mergedOptions = deepExtend(defaultOptions, config.options);
-      } else {
-        mergedOptions = defaultOptions;
-      }
-      mergedOptions.chart.renderTo = element[0];
-      angular.forEach(axisNames, function(axisName) {
-        if (config[axisName]) {
-          mergedOptions[axisName] = angular.copy(config[axisName]);
-        }
-      });
-
-      if (config.title) {
-        mergedOptions.title = config.title;
-      }
-      if (config.subtitle) {
-        mergedOptions.subtitle = config.subtitle;
-      }
-      if (config.credits) {
-        mergedOptions.credits = config.credits;
-      }
-      return mergedOptions;
-    };
-
-    var updateZoom = function (axis, modelAxis) {
-      var extremes = axis.getExtremes();
-      if (modelAxis.currentMin !== extremes.dataMin || modelAxis.currentMax !== extremes.dataMax) {
-        axis.setExtremes(modelAxis.currentMin, modelAxis.currentMax, false);
-      }
-    };
-
-    var processExtremes = function (chart, axis, axisName) {
-      if (axis.currentMin || axis.currentMax) {
-        chart[axisName][0].setExtremes(axis.currentMin, axis.currentMax, true);
-      }
-    };
-
-    var chartOptionsWithoutEasyOptions = function (options) {
-      return angular.extend({}, options, {data: null, visible: null});
-    };
-
-    var prevOptions = {};
-
-    var processSeries = function (chart, series) {
-      var ids = [];
-      if (series) {
-        ensureIds(series);
-
-        //Find series to add or update
-        angular.forEach(series, function (s) {
-          ids.push(s.id);
-          var chartSeries = chart.get(s.id);
-          if (chartSeries) {
-            if (!angular.equals(prevOptions[s.id], chartOptionsWithoutEasyOptions(s))) {
-              chartSeries.update(angular.copy(s), false);
-            } else {
-              if (s.visible !== undefined && chartSeries.visible !== s.visible) {
-                chartSeries.setVisible(s.visible, false);
-              }
-              if (chartSeries.options.data !== s.data) {
-                chartSeries.setData(angular.copy(s.data), false);
-              }
-            }
-          } else {
-            chart.addSeries(angular.copy(s), false);
-          }
-          prevOptions[s.id] = chartOptionsWithoutEasyOptions(s);
-        });
-      }
-
-      //Now remove any missing series
-      for (var i = chart.series.length - 1; i >= 0; i--) {
-        var s = chart.series[i];
-        if (indexOf(ids, s.options.id) < 0) {
-          s.remove(false);
-        }
-      }
-
-    };
-
-    var initialiseChart = function (scope, element, config) {
-      config = config || {};
-      var mergedOptions = getMergedOptions(scope, element, config);
-      var chart = config.useHighStocks ? new Highcharts.StockChart(mergedOptions) : new Highcharts.Chart(mergedOptions);
-      for (var i = 0; i < axisNames.length; i++) {
-        if (config[axisNames[i]]) {
-          processExtremes(chart, config[axisNames[i]], axisNames[i]);
-        }
-      }
-      processSeries(chart, config.series);
-      if (config.loading) {
-        chart.showLoading(config.loading !== true ? config.loading : null);
-      }
-      chart.redraw();
-      chart.reflow();
-      return chart;
-    };
-
-
     return {
       restrict: 'EAC',
       replace: true,
@@ -165,20 +12,180 @@ angular.module('highcharts-ng', [])
       },
       link: function (scope, element) {
 
+        //IE8 support
+        function indexOf(arr, find, i /*opt*/) {
+          if (i === undefined) i = 0;
+          if (i < 0) i += arr.length;
+          if (i < 0) i = 0;
+          for (var n = arr.length; i < n; i++)
+            if (i in arr && arr[i] === find)
+              return i;
+          return -1;
+        }
+
+        function deepExtend(destination, source) {
+          for (var property in source) {
+            //noinspection JSUnfilteredForInLoop
+            if (source[property] && source[property].constructor &&
+              source[property].constructor === Object) {
+              //noinspection JSUnfilteredForInLoop
+              destination[property] = destination[property] || {};
+              //noinspection JSUnfilteredForInLoop
+              deepExtend(destination[property], source[property]);
+            } else {
+              //noinspection JSUnfilteredForInLoop
+              destination[property] = source[property];
+            }
+          }
+          return destination;
+        }
+
+        var seriesId = 0;
+
+        function ensureIds(series) {
+          angular.forEach(series, function (s) {
+            if (!angular.isDefined(s.id)) {
+              s.id = 'series-' + seriesId++;
+            }
+          });
+        }
+
+        var axisNames = [ 'xAxis', 'yAxis' ];
+
+        function getMergedOptions(element, config) {
+          var mergedOptions = {};
+
+          var defaultOptions = {
+            chart: {
+              events: {}
+            },
+            title: {},
+            subtitle: {},
+            series: [],
+            credits: {},
+            plotOptions: {},
+            navigator: {enabled: false}
+          };
+
+          if (config.options) {
+            mergedOptions = deepExtend(defaultOptions, config.options);
+          } else {
+            mergedOptions = defaultOptions;
+          }
+          mergedOptions.chart.renderTo = element[0];
+          angular.forEach(axisNames, function (axisName) {
+            if (config[axisName]) {
+              mergedOptions[axisName] = angular.copy(config[axisName]);
+            }
+          });
+
+          if (config.title) {
+            mergedOptions.title = config.title;
+          }
+          if (config.subtitle) {
+            mergedOptions.subtitle = config.subtitle;
+          }
+          if (config.credits) {
+            mergedOptions.credits = config.credits;
+          }
+          return mergedOptions;
+        }
+
+        function updateZoom(axis, modelAxis) {
+          var extremes = axis.getExtremes();
+          if (modelAxis.currentMin !== extremes.dataMin || modelAxis.currentMax !== extremes.dataMax) {
+            axis.setExtremes(modelAxis.currentMin, modelAxis.currentMax, false);
+          }
+        }
+
+        function processExtremes(chart, axis, axisName) {
+          if (axis.currentMin || axis.currentMax) {
+            chart[axisName][0].setExtremes(axis.currentMin, axis.currentMax, true);
+          }
+        }
+
+        function chartOptionsWithoutEasyOptions(options) {
+          return angular.extend({}, options, {data: null, visible: null});
+        }
+
+        var prevOptions = {};
+
+        function processSeries(chart, series) {
+          var ids = [];
+          appliedSeries = series;
+          if (series) {
+            ensureIds(series);
+
+            //Find series to add or update
+            angular.forEach(series, function (s) {
+              ids.push(s.id);
+              var chartSeries = chart.get(s.id);
+              if (chartSeries) {
+                if (!angular.equals(prevOptions[s.id], chartOptionsWithoutEasyOptions(s))) {
+                  chartSeries.update(angular.copy(s), false);
+                } else {
+                  if (s.visible !== undefined && chartSeries.visible !== s.visible) {
+                    chartSeries.setVisible(s.visible, false);
+                  }
+                  if (chartSeries.options.data !== s.data) {
+                    chartSeries.setData(angular.copy(s.data), false);
+                  }
+                }
+              } else {
+                chart.addSeries(angular.copy(s), false);
+              }
+              prevOptions[s.id] = chartOptionsWithoutEasyOptions(s);
+            });
+          }
+
+          //Now remove any missing series
+          for (var i = chart.series.length - 1; i >= 0; i--) {
+            var s = chart.series[i];
+            if (indexOf(ids, s.options.id) < 0) {
+              s.remove(false);
+            }
+          }
+
+        }
+
+        function initialiseChart(element, config) {
+          config = config || {};
+          var mergedOptions = getMergedOptions(element, config);
+          var chart = new Highcharts.Chart(mergedOptions);
+          for (var i = 0; i < axisNames.length; i++) {
+            if (config[axisNames[i]]) {
+              processExtremes(chart, config[axisNames[i]], axisNames[i]);
+            }
+          }
+          processSeries(chart, config.series);
+          if (config.loading) {
+            chart.showLoading(config.loading !== true ? config.loading : null);
+          }
+          chart.redraw();
+          chart.reflow();
+          return chart;
+        }
+
         var chart = false;
+        var appliedSeries;
 
         function initChart() {
           if (chart) chart.destroy();
-          chart = initialiseChart(scope, element, scope.config);
+          chart = initialiseChart(element, scope.config);
         }
 
         initChart();
 
-        scope.$watch('config.series', function (newSeries, oldSeries) {
+        scope.$watch('config.series', function (newSeries) {
           //do nothing when called on registration
-          if (newSeries === oldSeries) return;
+          if (!chart)
+            return;
+          if (newSeries === appliedSeries) return;
           processSeries(chart, newSeries);
-          chart.exportSVGElements && chart.exportSVGElements.length > 0 && chart.exportSVGElements[0].toFront();
+          chart.exportSVGElements
+            && chart.exportSVGElements.length > 0
+            && chart.exportSVGElements[0].menuClassName == "highcharts-contextmenu"
+          && chart.exportSVGElements[0].toFront();
           chart.redraw();
           chart.reflow();
         }, true);
@@ -207,11 +214,7 @@ angular.module('highcharts-ng', [])
           }
         });
 
-        scope.$watch('config.useHighStocks', function (useHighStocks) {
-          initChart();
-        });
-
-        angular.forEach(axisNames, function(axisName) {
+        angular.forEach(axisNames, function (axisName) {
           scope.$watch('config.' + axisName, function (newAxes, oldAxes) {
             if (newAxes === oldAxes) return;
             if (newAxes) {
@@ -228,10 +231,12 @@ angular.module('highcharts-ng', [])
         }, true);
 
         scope.$on('$destroy', function () {
-          if (chart) chart.destroy();
+          if (chart) {
+            chart.destroy();
+            chart = false;
+          }
           element.remove();
         });
-
       }
     };
   });
