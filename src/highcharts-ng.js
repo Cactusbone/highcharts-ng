@@ -182,10 +182,10 @@ angular.module('highcharts-ng', [])
             return;
           if (newSeries === appliedSeries) return;
           processSeries(chart, newSeries);
-          chart.exportSVGElements
-            && chart.exportSVGElements.length > 0
-            && chart.exportSVGElements[0].menuClassName == "highcharts-contextmenu"
-          && chart.exportSVGElements[0].toFront();
+          angular.forEach(chart.exportSVGElements, function (svgElement) {
+            if(svgElement.menuClassName == "highcharts-contextmenu")
+              svgElement.toFront();
+          });
           chart.redraw();
           chart.reflow();
         }, true);
